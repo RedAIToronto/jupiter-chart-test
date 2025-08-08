@@ -293,8 +293,17 @@ export class OptimizedAPIClient {
       slippageBps: (slippage * 100).toString()
     });
     
+    const apiKey = process.env.NEXT_PUBLIC_JUPITER_API_KEY;
+    const headers: HeadersInit = {
+      'Accept': 'application/json',
+    };
+    if (apiKey) {
+      headers['x-api-key'] = apiKey;
+    }
+    
     const response = await fetch(
-      `https://quote-api.jup.ag/v6/quote?${params}`
+      `https://quote-api.jup.ag/v6/quote?${params}`,
+      { headers }
     );
     
     if (!response.ok) {

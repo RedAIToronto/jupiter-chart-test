@@ -113,7 +113,16 @@ export default function SwapInterfaceWithBalances({
   useEffect(() => {
     async function fetchSolPrice() {
       try {
-        const response = await fetch('https://api.jup.ag/price/v2?ids=So11111111111111111111111111111111111111112');
+        const apiKey = process.env.NEXT_PUBLIC_JUPITER_API_KEY;
+        const headers: HeadersInit = {};
+        if (apiKey) {
+          headers['x-api-key'] = apiKey;
+        }
+        
+        const response = await fetch(
+          'https://api.jup.ag/price/v2?ids=So11111111111111111111111111111111111111112',
+          { headers }
+        );
         const data = await response.json();
         
         if (data?.data?.So11111111111111111111111111111111111111112?.price) {
@@ -199,13 +208,22 @@ export default function SwapInterfaceWithBalances({
       
       console.log('Getting quote...', { inputMint, outputMint, amount });
       
-      // Get quote
+      // Get quote with API key
+      const apiKey = process.env.NEXT_PUBLIC_JUPITER_API_KEY;
+      const headers: HeadersInit = {
+        'Accept': 'application/json',
+      };
+      if (apiKey) {
+        headers['x-api-key'] = apiKey;
+      }
+      
       const quoteResponse = await fetch(
         `https://quote-api.jup.ag/v6/quote?` +
         `inputMint=${inputMint}&` +
         `outputMint=${outputMint}&` +
         `amount=${amount}&` +
-        `slippageBps=${Math.floor(slippage * 100)}`
+        `slippageBps=${Math.floor(slippage * 100)}`,
+        { headers }
       );
       
       if (!quoteResponse.ok) {
@@ -220,12 +238,17 @@ export default function SwapInterfaceWithBalances({
 
       console.log('Quote received:', quoteData);
 
-      // Get swap transaction
+      // Get swap transaction with API key
+      const swapHeaders: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      if (apiKey) {
+        swapHeaders['x-api-key'] = apiKey;
+      }
+      
       const swapResponse = await fetch('https://quote-api.jup.ag/v6/swap', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: swapHeaders,
         body: JSON.stringify({
           quoteResponse: quoteData,
           userPublicKey: publicKey.toString(),
