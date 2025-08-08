@@ -2,12 +2,20 @@
 
 import OptimizedTokenDisplay from '@/components/OptimizedTokenDisplay';
 import TradingInterface from '@/components/TradingInterface';
+import { UltraFastTokenDisplay, UltraFastTokenGrid } from '@/components/UltraFastTokenDisplay';
 import { useCacheStats } from '@/contexts/TokenDataContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getRPCLoadBalancer } from '@/lib/rpc-load-balancer';
+import { getWebSocketClient } from '@/lib/websocket-client';
+import { globalCache } from '@/lib/cache-layer';
 
 function HomePage() {
   const cacheStats = useCacheStats();
   const [showTradingView, setShowTradingView] = useState(false);
+  const [useUltraFast, setUseUltraFast] = useState(true);
+  const [rpcStats, setRpcStats] = useState<any>(null);
+  const [wsStatus, setWsStatus] = useState<any>(null);
+  const [ultraCacheStats, setUltraCacheStats] = useState<any>(null);
   
   // Fresh DBC token with no trades yet
   const FRESH_DBC_TOKEN = 'b5HpsgM4DkoQweD4aqjfKsoZ8amCsUK5KoiFFCbWodp';
@@ -15,6 +23,26 @@ function HomePage() {
   const BONK_TOKEN = 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263';
   const WIF_TOKEN = 'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm';
   const JUP_TOKEN = 'JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN';
+  
+  // Monitor performance stats
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // RPC stats
+      const rpcBalancer = getRPCLoadBalancer();
+      setRpcStats(rpcBalancer.getStats());
+      
+      // WebSocket status
+      const wsClient = getWebSocketClient();
+      if (wsClient) {
+        setWsStatus(wsClient.getStatus());
+      }
+      
+      // Ultra cache stats
+      setUltraCacheStats(globalCache.getStats());
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
   
   return (
     <main className="min-h-screen bg-black">
@@ -36,7 +64,51 @@ function HomePage() {
           >
             {showTradingView ? '📊 Show Chart Only' : '💱 Show Trading Interface (Chart + Swap)'}
           </button>
+          <button
+            onClick={() => setUseUltraFast(!useUltraFast)}
+            className={`font-bold py-3 px-8 rounded-lg transition-all transform hover:scale-105 ${
+              useUltraFast 
+                ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white' 
+                : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+            }`}
+          >
+            {useUltraFast ? '⚡ Ultra-Fast Mode ON' : '🐌 Standard Mode'}
+          </button>
         </div>
+        
+        {/* Performance Dashboard */}
+        {useUltraFast && (
+          <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 mb-8">
+            <h3 className="text-lg font-semibold text-white mb-3">🚀 Performance Metrics</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div>
+                <div className="text-gray-400">RPC Health</div>
+                <div className="text-white font-semibold">
+                  {rpcStats ? `${rpcStats.healthyCount}/${rpcStats.totalCount} healthy` : 'Loading...'}
+                </div>
+              </div>
+              <div>
+                <div className="text-gray-400">WebSocket</div>
+                <div className="text-white font-semibold">
+                  {wsStatus ? (wsStatus.connected ? '🟢 Connected' : '🔴 Disconnected') : 'Loading...'}
+                  {wsStatus && ` (${wsStatus.subscriptions} subs)`}
+                </div>
+              </div>
+              <div>
+                <div className="text-gray-400">Ultra Cache</div>
+                <div className="text-white font-semibold">
+                  {ultraCacheStats ? `${ultraCacheStats.hotCacheSize} hot / ${ultraCacheStats.totalSize} total` : 'Loading...'}
+                </div>
+              </div>
+              <div>
+                <div className="text-gray-400">Response Time</div>
+                <div className="text-white font-semibold">
+                  {rpcStats && rpcStats.endpoints?.[0] ? `${rpcStats.endpoints[0].responseTime}ms` : 'Loading...'}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Fresh DBC token test */}
         <div className="mb-8">
@@ -45,6 +117,8 @@ function HomePage() {
           </h2>
           {showTradingView ? (
             <TradingInterface tokenAddress={FRESH_DBC_TOKEN} />
+          ) : useUltraFast ? (
+            <UltraFastTokenDisplay configAddress={FRESH_DBC_TOKEN} />
           ) : (
             <OptimizedTokenDisplay tokenAddress={FRESH_DBC_TOKEN} />
           )}
@@ -87,32 +161,45 @@ function HomePage() {
             </button>
           </div>
           
-          {/* BONK Chart */}
-          <div id="bonk-chart" className="mb-8">
-            {showTradingView ? (
-              <TradingInterface tokenAddress={BONK_TOKEN} />
-            ) : (
-              <OptimizedTokenDisplay tokenAddress={BONK_TOKEN} />
-            )}
-          </div>
-          
-          {/* WIF Chart */}
-          <div id="wif-chart" className="mb-8">
-            {showTradingView ? (
-              <TradingInterface tokenAddress={WIF_TOKEN} />
-            ) : (
-              <OptimizedTokenDisplay tokenAddress={WIF_TOKEN} />
-            )}
-          </div>
-          
-          {/* JUP Chart */}
-          <div id="jup-chart" className="mb-8">
-            {showTradingView ? (
-              <TradingInterface tokenAddress={JUP_TOKEN} />
-            ) : (
-              <OptimizedTokenDisplay tokenAddress={JUP_TOKEN} />
-            )}
-          </div>
+          {/* Display all tokens in ultra-fast grid or individual */}
+          {useUltraFast && !showTradingView ? (
+            <UltraFastTokenGrid configAddresses={[BONK_TOKEN, WIF_TOKEN, JUP_TOKEN]} />
+          ) : (
+            <>
+              {/* BONK Chart */}
+              <div id="bonk-chart" className="mb-8">
+                {showTradingView ? (
+                  <TradingInterface tokenAddress={BONK_TOKEN} />
+                ) : useUltraFast ? (
+                  <UltraFastTokenDisplay configAddress={BONK_TOKEN} />
+                ) : (
+                  <OptimizedTokenDisplay tokenAddress={BONK_TOKEN} />
+                )}
+              </div>
+              
+              {/* WIF Chart */}
+              <div id="wif-chart" className="mb-8">
+                {showTradingView ? (
+                  <TradingInterface tokenAddress={WIF_TOKEN} />
+                ) : useUltraFast ? (
+                  <UltraFastTokenDisplay configAddress={WIF_TOKEN} />
+                ) : (
+                  <OptimizedTokenDisplay tokenAddress={WIF_TOKEN} />
+                )}
+              </div>
+              
+              {/* JUP Chart */}
+              <div id="jup-chart" className="mb-8">
+                {showTradingView ? (
+                  <TradingInterface tokenAddress={JUP_TOKEN} />
+                ) : useUltraFast ? (
+                  <UltraFastTokenDisplay configAddress={JUP_TOKEN} />
+                ) : (
+                  <OptimizedTokenDisplay tokenAddress={JUP_TOKEN} />
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
       
