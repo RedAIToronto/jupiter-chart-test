@@ -113,7 +113,7 @@ export default function SwapInterfaceWithBalances({
   useEffect(() => {
     async function fetchSolPrice() {
       try {
-        const response = await fetch('https://price.jup.ag/v6/price?ids=So11111111111111111111111111111111111111112');
+        const response = await fetch('https://api.jup.ag/price/v2?ids=So11111111111111111111111111111111111111112');
         const data = await response.json();
         
         if (data?.data?.So11111111111111111111111111111111111111112?.price) {

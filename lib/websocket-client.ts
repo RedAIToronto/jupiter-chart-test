@@ -32,8 +32,11 @@ export class RealtimeWebSocketClient {
   private url: string;
 
   constructor(url?: string) {
-    this.url = url || process.env.NEXT_PUBLIC_WS_URL || 'wss://api.meteora-dbc.com/ws';
-    this.connect();
+    // For now, disable WebSocket until we have a real endpoint
+    this.url = url || process.env.NEXT_PUBLIC_WS_URL || '';
+    if (this.url) {
+      this.connect();
+    }
   }
 
   private connect(): void {

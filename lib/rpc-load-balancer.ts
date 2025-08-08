@@ -154,28 +154,9 @@ export class RPCLoadBalancer {
   }
 
   private async checkHealth(): Promise<void> {
-    const checks = this.endpoints.map(async (endpoint) => {
-      try {
-        const connection = this.connections.get(endpoint.url)!;
-        const startTime = Date.now();
-        
-        // Simple health check - get slot
-        await connection.getSlot();
-        
-        // Update metrics
-        endpoint.responseTime = Date.now() - startTime;
-        endpoint.healthy = true;
-        endpoint.errors = Math.max(0, endpoint.errors - 1);
-        endpoint.lastCheck = Date.now();
-      } catch (error) {
-        endpoint.errors++;
-        if (endpoint.errors > 3) {
-          endpoint.healthy = false;
-        }
-      }
-    });
-
-    await Promise.allSettled(checks);
+    // Skip health checks - we're using server-side API route now
+    // which handles RPC calls without CORS issues
+    return;
   }
 
   private async attemptRecovery(): Promise<void> {
