@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { Transaction, VersionedTransaction, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { getJupiterClient } from '@/lib/jupiter-client';
 
 interface SwapInterfaceProps {
   tokenAddress: string;
@@ -113,23 +114,9 @@ export default function SwapInterfaceWithBalances({
   useEffect(() => {
     async function fetchSolPrice() {
       try {
-        // Use our proxy to avoid CORS and handle auth properly
-        const response = await fetch(
-          '/api/jupiter?endpoint=price/v2&ids=So11111111111111111111111111111111111111112'
-        );
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch SOL price');
-        }
-        
-        const data = await response.json();
-        
-        if (data?.data?.So11111111111111111111111111111111111111112?.price) {
-          setSolPrice(data.data.So11111111111111111111111111111111111111112.price);
-        } else {
-          // Fallback to using a default SOL price
-          setSolPrice(165); // Approximate current SOL price
-        }
+        const jupiterClient = getJupiterClient();
+        const price = await jupiterClient.getSolPrice();
+        setSolPrice(price);
       } catch (error) {
         console.log('Using fallback SOL price:', error);
         setSolPrice(165); // Fallback price
@@ -211,21 +198,14 @@ export default function SwapInterfaceWithBalances({
       
       console.log('Getting quote...', { inputMint, outputMint, amount });
       
-      // Get quote through our proxy (handles API key server-side)
-      const quoteResponse = await fetch(
-        `/api/jupiter?` +
-        `endpoint=v6/quote&` +
-        `inputMint=${inputMint}&` +
-        `outputMint=${outputMint}&` +
-        `amount=${amount}&` +
-        `slippageBps=${Math.floor(slippage * 100)}`
-      );
-      
-      if (!quoteResponse.ok) {
-        throw new Error('Failed to get quote');
-      }
-      
-      const quoteData = await quoteResponse.json();
+      // Get quote using scalable Jupiter client
+      const jupiterClient = getJupiterClient();
+      const quoteData = await jupiterClient.getQuote({
+        inputMint,
+        outputMint,
+        amount,
+        slippageBps: Math.floor(slippage * 100)
+      });
       
       if (!quoteData || quoteData.error) {
         throw new Error(quoteData?.error || 'Failed to get quote');
@@ -233,23 +213,15 @@ export default function SwapInterfaceWithBalances({
 
       console.log('Quote received:', quoteData);
 
-      // Get swap transaction through our proxy (handles API key server-side)
-      const swapResponse = await fetch('/api/jupiter', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          endpoint: 'v6/swap',
-          quoteResponse: quoteData,
-          userPublicKey: publicKey.toString(),
-          wrapAndUnwrapSol: true,
-          dynamicComputeUnitLimit: true,
-          prioritizationFeeLamports: 'auto',
-        }),
+      // Get swap transaction using scalable Jupiter client
+      const jupiterClient = getJupiterClient();
+      const swapData = await jupiterClient.getSwapTransaction({
+        quoteResponse: quoteData,
+        userPublicKey: publicKey.toString(),
+        wrapAndUnwrapSol: true,
+        dynamicComputeUnitLimit: true,
+        prioritizationFeeLamports: 'auto'
       });
-
-      const swapData = await swapResponse.json();
       
       if (!swapData?.swapTransaction) {
         throw new Error('Failed to create swap transaction');

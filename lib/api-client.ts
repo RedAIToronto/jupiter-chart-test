@@ -1,6 +1,7 @@
 // Optimized API client with batching and caching
 import { priceCache, chartCache, quoteCache } from './cache-layer';
 import { getRPCClient } from './rpc-client';
+import { getJupiterClient } from './jupiter-client';
 
 interface BatchRequest {
   id: string;
@@ -286,22 +287,14 @@ export class OptimizedAPIClient {
     amount: number,
     slippage: number
   ): Promise<any> {
-    const params = new URLSearchParams({
-      endpoint: 'v6/quote',
+    // Use scalable Jupiter client
+    const jupiterClient = getJupiterClient();
+    return jupiterClient.getQuote({
       inputMint,
       outputMint,
-      amount: amount.toString(),
-      slippageBps: (slippage * 100).toString()
+      amount,
+      slippageBps: slippage * 100
     });
-    
-    // Use our proxy which handles API key server-side
-    const response = await fetch(`/api/jupiter?${params}`);
-    
-    if (!response.ok) {
-      throw new Error('Failed to get Jupiter quote');
-    }
-    
-    return response.json();
   }
 
   private getChartCacheTTL(interval: string): number {

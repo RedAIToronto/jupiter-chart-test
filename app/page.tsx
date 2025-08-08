@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { getRPCLoadBalancer } from '@/lib/rpc-load-balancer';
 import { getWebSocketClient } from '@/lib/websocket-client';
 import { globalCache } from '@/lib/cache-layer';
+import { getJupiterClient } from '@/lib/jupiter-client';
 
 function HomePage() {
   const cacheStats = useCacheStats();
@@ -55,12 +56,14 @@ function HomePage() {
     };
     
     try {
-      // Test 1: Jupiter quote (through proxy with API key)
+      // Test 1: Jupiter quote using scalable client
       const quoteStart = Date.now();
-      const response = await fetch(
-        '/api/jupiter?endpoint=v6/quote&inputMint=So11111111111111111111111111111111111111112&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amount=1000000000'
-      );
-      await response.json();
+      const jupiterClient = getJupiterClient();
+      await jupiterClient.getQuote({
+        inputMint: 'So11111111111111111111111111111111111111112',
+        outputMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        amount: 1000000000
+      });
       results.jupiterQuote = Date.now() - quoteStart;
       
       // Test 2: RPC call through API
