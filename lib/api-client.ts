@@ -287,24 +287,15 @@ export class OptimizedAPIClient {
     slippage: number
   ): Promise<any> {
     const params = new URLSearchParams({
+      endpoint: 'v6/quote',
       inputMint,
       outputMint,
       amount: amount.toString(),
       slippageBps: (slippage * 100).toString()
     });
     
-    const apiKey = process.env.NEXT_PUBLIC_JUPITER_API_KEY;
-    const headers: HeadersInit = {
-      'Accept': 'application/json',
-    };
-    if (apiKey) {
-      headers['x-api-key'] = apiKey;
-    }
-    
-    const response = await fetch(
-      `https://quote-api.jup.ag/v6/quote?${params}`,
-      { headers }
-    );
+    // Use our proxy which handles API key server-side
+    const response = await fetch(`/api/jupiter?${params}`);
     
     if (!response.ok) {
       throw new Error('Failed to get Jupiter quote');

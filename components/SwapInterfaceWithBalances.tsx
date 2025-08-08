@@ -113,23 +113,26 @@ export default function SwapInterfaceWithBalances({
   useEffect(() => {
     async function fetchSolPrice() {
       try {
-        const apiKey = process.env.NEXT_PUBLIC_JUPITER_API_KEY;
-        const headers: HeadersInit = {};
-        if (apiKey) {
-          headers['x-api-key'] = apiKey;
+        // Use our proxy to avoid CORS and handle auth properly
+        const response = await fetch(
+          '/api/jupiter?endpoint=price/v2&ids=So11111111111111111111111111111111111111112'
+        );
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch SOL price');
         }
         
-        const response = await fetch(
-          'https://api.jup.ag/price/v2?ids=So11111111111111111111111111111111111111112',
-          { headers }
-        );
         const data = await response.json();
         
         if (data?.data?.So11111111111111111111111111111111111111112?.price) {
           setSolPrice(data.data.So11111111111111111111111111111111111111112.price);
+        } else {
+          // Fallback to using a default SOL price
+          setSolPrice(165); // Approximate current SOL price
         }
       } catch (error) {
-        console.log('Using fallback SOL price');
+        console.log('Using fallback SOL price:', error);
+        setSolPrice(165); // Fallback price
       }
     }
     
@@ -208,22 +211,14 @@ export default function SwapInterfaceWithBalances({
       
       console.log('Getting quote...', { inputMint, outputMint, amount });
       
-      // Get quote with API key
-      const apiKey = process.env.NEXT_PUBLIC_JUPITER_API_KEY;
-      const headers: HeadersInit = {
-        'Accept': 'application/json',
-      };
-      if (apiKey) {
-        headers['x-api-key'] = apiKey;
-      }
-      
+      // Get quote through our proxy (handles API key server-side)
       const quoteResponse = await fetch(
-        `https://quote-api.jup.ag/v6/quote?` +
+        `/api/jupiter?` +
+        `endpoint=v6/quote&` +
         `inputMint=${inputMint}&` +
         `outputMint=${outputMint}&` +
         `amount=${amount}&` +
-        `slippageBps=${Math.floor(slippage * 100)}`,
-        { headers }
+        `slippageBps=${Math.floor(slippage * 100)}`
       );
       
       if (!quoteResponse.ok) {
@@ -238,18 +233,14 @@ export default function SwapInterfaceWithBalances({
 
       console.log('Quote received:', quoteData);
 
-      // Get swap transaction with API key
-      const swapHeaders: HeadersInit = {
-        'Content-Type': 'application/json',
-      };
-      if (apiKey) {
-        swapHeaders['x-api-key'] = apiKey;
-      }
-      
-      const swapResponse = await fetch('https://quote-api.jup.ag/v6/swap', {
+      // Get swap transaction through our proxy (handles API key server-side)
+      const swapResponse = await fetch('/api/jupiter', {
         method: 'POST',
-        headers: swapHeaders,
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
+          endpoint: 'v6/swap',
           quoteResponse: quoteData,
           userPublicKey: publicKey.toString(),
           wrapAndUnwrapSol: true,

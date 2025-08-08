@@ -55,15 +55,10 @@ function HomePage() {
     };
     
     try {
-      // Test 1: Jupiter quote (with API key)
+      // Test 1: Jupiter quote (through proxy with API key)
       const quoteStart = Date.now();
       const response = await fetch(
-        'https://quote-api.jup.ag/v6/quote?inputMint=So11111111111111111111111111111111111111112&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amount=1000000000',
-        {
-          headers: {
-            'x-api-key': process.env.NEXT_PUBLIC_JUPITER_API_KEY || ''
-          }
-        }
+        '/api/jupiter?endpoint=v6/quote&inputMint=So11111111111111111111111111111111111111112&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amount=1000000000'
       );
       await response.json();
       results.jupiterQuote = Date.now() - quoteStart;
