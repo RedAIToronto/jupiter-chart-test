@@ -17,27 +17,11 @@ export class RPCLoadBalancer {
   private healthCheckInterval: NodeJS.Timeout | null = null;
 
   constructor() {
-    // Initialize with multiple RPC endpoints
+    // Use QuickNode RPC endpoint
     this.endpoints = [
       {
-        url: process.env.NEXT_PUBLIC_RPC_ENDPOINT || 'https://api.mainnet-beta.solana.com',
+        url: 'https://billowing-alpha-borough.solana-mainnet.quiknode.pro/a03394eddb75c7558f4c17e7875eb6b59d0df60c/',
         weight: 10,
-        healthy: true,
-        responseTime: 0,
-        errors: 0,
-        lastCheck: Date.now()
-      },
-      {
-        url: 'https://solana-mainnet.g.alchemy.com/v2/demo',
-        weight: 5,
-        healthy: true,
-        responseTime: 0,
-        errors: 0,
-        lastCheck: Date.now()
-      },
-      {
-        url: 'https://rpc.ankr.com/solana',
-        weight: 3,
         healthy: true,
         responseTime: 0,
         errors: 0,

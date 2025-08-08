@@ -1,7 +1,6 @@
 // Optimized API client with batching and caching
 import { priceCache, chartCache, quoteCache } from './cache-layer';
-import { getRPCLoadBalancer } from './rpc-load-balancer';
-import { PublicKey } from '@solana/web3.js';
+import { getRPCClient } from './rpc-client';
 
 interface BatchRequest {
   id: string;
@@ -131,21 +130,8 @@ export class OptimizedAPIClient {
       return cached;
     }
 
-    // Use RPC load balancer for on-chain data
-    const rpcBalancer = getRPCLoadBalancer();
-    
-    const quote = await rpcBalancer.executeWithFallback(async (connection) => {
-      // Check if it's a DBC token
-      const isDBCToken = await this.checkIfDBCToken(inputMint, outputMint, connection);
-      
-      if (isDBCToken) {
-        // Use optimized DBC routing
-        return this.getDBCQuote(inputMint, outputMint, amount, connection);
-      }
-      
-      // Use Jupiter API for other tokens
-      return this.getJupiterQuote(inputMint, outputMint, amount, slippage);
-    });
+    // For now, just use Jupiter API for all quotes
+    const quote = await this.getJupiterQuote(inputMint, outputMint, amount, slippage);
 
     // Cache the quote
     quoteCache.set(cacheKey, quote);
@@ -213,57 +199,39 @@ export class OptimizedAPIClient {
   }
 
   private async fetchTokenData(configAddress: string): Promise<TokenData> {
-    // Use RPC load balancer
-    const rpcBalancer = getRPCLoadBalancer();
+    // Use browser-safe RPC client
+    const rpcClient = getRPCClient();
     
-    return rpcBalancer.executeWithFallback(async (connection) => {
-      const accountInfo = await connection.getAccountInfo(new PublicKey(configAddress));
-      
-      if (!accountInfo) {
-        throw new Error('Config not found');
-      }
-      
-      // Parse account data (simplified - implement actual parsing)
-      const data = this.parseAccountData(accountInfo.data);
-      
-      return {
-        configAddress,
-        price: data.price,
-        marketCap: data.marketCap,
-        volume24h: data.volume24h,
-        change24h: data.change24h,
-        tokensSold: data.tokensSold,
-        progress: data.progress
-      };
-    });
+    const accountInfo = await rpcClient.getAccountInfo(configAddress);
+    
+    if (!accountInfo) {
+      throw new Error('Config not found');
+    }
+    
+    // Parse account data (simplified - implement actual parsing)
+    const data = this.parseAccountData(accountInfo.data);
+    
+    return {
+      configAddress,
+      price: data.price,
+      marketCap: data.marketCap,
+      volume24h: data.volume24h,
+      change24h: data.change24h,
+      tokensSold: data.tokensSold,
+      progress: data.progress
+    };
   }
 
   private async batchFetchTokenData(configAddresses: string[]): Promise<Map<string, TokenData>> {
-    const rpcBalancer = getRPCLoadBalancer();
+    const rpcClient = getRPCClient();
     const results = new Map<string, TokenData>();
     
-    // Split into chunks for parallel fetching
-    const chunkSize = 10;
-    const chunks: string[][] = [];
-    
-    for (let i = 0; i < configAddresses.length; i += chunkSize) {
-      chunks.push(configAddresses.slice(i, i + chunkSize));
-    }
-    
-    // Fetch chunks in parallel
-    const chunkResults = await Promise.all(
-      chunks.map(chunk => 
-        rpcBalancer.batchExecute(
-          chunk.map(address => async (connection) => {
-            const accountInfo = await connection.getAccountInfo(new PublicKey(address));
-            return { address, accountInfo };
-          })
-        )
-      )
-    );
+    // Batch fetch all accounts at once
+    const accountsInfo = await rpcClient.getMultipleAccountsInfo(configAddresses);
     
     // Process results
-    chunkResults.flat().forEach(({ address, accountInfo }) => {
+    configAddresses.forEach((address, index) => {
+      const accountInfo = accountsInfo[index];
       if (accountInfo) {
         const data = this.parseAccountData(accountInfo.data);
         results.set(address, {
