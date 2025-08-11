@@ -143,13 +143,25 @@ export class MeteoraDBCClient {
    */
   private async fetchPoolInfo(tokenAddress: string): Promise<JupiterPoolInfo | null> {
     try {
-      // Use Jupiter API v1/pools endpoint which has bonding curve data
+      // Try our proxy first
       const response = await fetch(
         `/api/jupiter?endpoint=v1/pools&assetIds=${tokenAddress}`
       );
       
       if (!response.ok) {
-        // Try alternative endpoint
+        // Fallback to direct Data API call
+        const directResponse = await fetch(
+          `https://datapi.jup.ag/v1/pools?assetIds=${tokenAddress}`
+        );
+        
+        if (directResponse.ok) {
+          const data = await directResponse.json();
+          if (data.pools && data.pools.length > 0) {
+            return data.pools[0];
+          }
+        }
+        
+        // Try DexScreener as last resort
         const altResponse = await fetch(
           `https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`
         );
