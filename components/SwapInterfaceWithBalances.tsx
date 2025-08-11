@@ -213,8 +213,7 @@ export default function SwapInterfaceWithBalances({
 
       console.log('Quote received:', quoteData);
 
-      // Get swap transaction using scalable Jupiter client
-      const jupiterClient = getJupiterClient();
+      // Get swap transaction using scalable Jupiter client (reuse existing instance)
       const swapData = await jupiterClient.getSwapTransaction({
         quoteResponse: quoteData,
         userPublicKey: publicKey.toString(),
