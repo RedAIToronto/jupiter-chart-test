@@ -19,7 +19,8 @@ function HomePage() {
   const [ultraCacheStats, setUltraCacheStats] = useState<any>(null);
   const [performanceTest, setPerformanceTest] = useState<{ running: boolean; results?: any }>({ running: false });
   
-  // Fresh DBC token with no trades yet
+  // Fresh DBC tokens
+  const ROUTI_TOKEN = 'AcNVuNdwNwxqkG17qSqNdUvigwiub3fvBV2ZjHNpzVyw'; // 0% bonding curve
   const FRESH_DBC_TOKEN = 'b5HpsgM4DkoQweD4aqjfKsoZ8amCsUK5KoiFFCbWodp';
   // Popular tokens for testing
   const BONK_TOKEN = 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263';
@@ -217,6 +218,20 @@ function HomePage() {
             </div>
           </div>
         )}
+        
+        {/* ROUTI Token - 0% Bonding Curve */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-semibold text-gray-300 mb-4">
+            🎯 ROUTI Token - Bonding Curve: 0% (Just Started!)
+          </h2>
+          {showTradingView ? (
+            <TradingInterface tokenAddress={ROUTI_TOKEN} />
+          ) : useUltraFast ? (
+            <UltraFastTokenDisplay configAddress={ROUTI_TOKEN} />
+          ) : (
+            <OptimizedTokenDisplay tokenAddress={ROUTI_TOKEN} />
+          )}
+        </div>
         
         {/* Fresh DBC token test */}
         <div className="mb-8">

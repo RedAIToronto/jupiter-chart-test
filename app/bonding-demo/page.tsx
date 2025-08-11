@@ -10,6 +10,7 @@ export default function BondingDemoPage() {
   const [loading, setLoading] = useState(false);
 
   const testTokens = [
+    { address: 'AcNVuNdwNwxqkG17qSqNdUvigwiub3fvBV2ZjHNpzVyw', name: 'ROUTI (0% - Just Started!)' },
     { address: 'b5HpsgM4DkoQweD4aqjfKsoZ8amCsUK5KoiFFCbWodp', name: 'RTNG (Fresh DBC)' },
     { address: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263', name: 'BONK' },
     { address: 'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm', name: 'WIF' },
