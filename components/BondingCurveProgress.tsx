@@ -34,6 +34,7 @@ export default function BondingCurveProgress({
   
   useEffect(() => {
     const dbcClient = getMeteoraDBCClient();
+    let intervalId: NodeJS.Timeout | null = null;
     
     const fetchBondingCurve = async () => {
       try {
@@ -61,27 +62,17 @@ export default function BondingCurveProgress({
     fetchBondingCurve();
     
     // Set up auto-refresh if enabled
-    let cleanup: (() => void) | null = null;
-    
     if (autoRefresh) {
-      cleanup = dbcClient.monitorBondingCurve(
-        tokenAddress,
-        (info) => {
-          setBondingData({
-            percentage: info.bondingCurvePercentage,
-            tokensSold: info.tokensSold,
-            migrationThreshold: info.migrationThreshold,
-            currentPrice: info.currentPrice,
-            isComplete: info.isComplete,
-            loading: false
-          });
-        },
-        refreshInterval
-      ).then(fn => fn);
+      intervalId = setInterval(() => {
+        fetchBondingCurve();
+      }, refreshInterval);
     }
     
+    // Cleanup function
     return () => {
-      if (cleanup) cleanup();
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
     };
   }, [tokenAddress, autoRefresh, refreshInterval]);
   
