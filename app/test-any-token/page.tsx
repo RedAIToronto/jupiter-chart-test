@@ -14,6 +14,11 @@ export default function TestAnyTokenPage() {
   // Example DBC tokens for quick testing
   const exampleTokens = [
     { 
+      address: '5bESCywVdQcHxKLQ93MfC5uHJDy4FQkNRNHs9JJ7moon', 
+      name: 'MOON (Moonshot)', 
+      bonding: 'Check' 
+    },
+    { 
       address: '7pptQpJhe4Zm7YYqxF9Qw2bQboMTpXLskpiBsLyEHAYM', 
       name: 'V (Voice)', 
       bonding: '26.85%' 
@@ -55,8 +60,12 @@ export default function TestAnyTokenPage() {
       if (data.pools && data.pools.length > 0) {
         const pool = data.pools[0];
         
-        // Check if it's a Meteora DBC token
-        if (pool.dex === 'met-dbc') {
+        // Check if it's any DBC token (Meteora, Moonshot, Pump.fun, Bags.fun, etc)
+        const dbcDexes = ['met-dbc', 'moonshot', 'pump.fun', 'pumpfun', 'bags.fun', 'bagsfun'];
+        const isDBC = dbcDexes.some(dex => pool.dex?.toLowerCase().includes(dex.toLowerCase())) || 
+                      typeof pool.bondingCurve === 'number';
+        
+        if (isDBC) {
           const bondingPercentage = (pool.bondingCurve || 0) * 100;
           
           setBondingData({
@@ -71,6 +80,7 @@ export default function TestAnyTokenPage() {
             holders: pool.baseAsset?.holderCount || 0,
             priceChange24h: pool.baseAsset?.stats24h?.priceChange || 0,
             createdAt: pool.createdAt,
+            platform: pool.dex || 'Unknown DBC',
             raw: pool
           });
           
@@ -107,7 +117,7 @@ export default function TestAnyTokenPage() {
             🧪 Test Any DBC Token
           </h1>
           <p className="text-gray-400">
-            Enter any Meteora DBC token address to see its bonding curve
+            Enter any DBC token address (Meteora, Moonshot, Pump.fun) to see its bonding curve
           </p>
           <p className="text-green-400 text-sm mt-2">
             ✅ Using Pro II API (50 RPS) - Test as many tokens as you want!
@@ -163,7 +173,7 @@ export default function TestAnyTokenPage() {
                 {/* Success - DBC Token Found */}
                 <div className="bg-green-900/20 border border-green-600 rounded-lg p-4">
                   <h2 className="text-2xl font-bold text-green-400 mb-2">
-                    ✅ Meteora DBC Token Found!
+                    ✅ DBC Token Found on {bondingData.platform}!
                   </h2>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
@@ -226,7 +236,7 @@ export default function TestAnyTokenPage() {
               /* Not a DBC Token */
               <div className="bg-yellow-900/20 border border-yellow-600 rounded-lg p-4">
                 <h2 className="text-xl font-bold text-yellow-400 mb-2">
-                  ⚠️ Not a Meteora DBC Token
+                  ⚠️ Not a DBC Token
                 </h2>
                 <p className="text-gray-300">
                   {bondingData.message}

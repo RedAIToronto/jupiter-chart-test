@@ -73,11 +73,17 @@ export class MeteoraDBCClient {
         return null;
       }
       
-      // Check if it's a Meteora DBC token
-      if (poolInfo.dex !== 'met-dbc') {
-        console.log('Not a Meteora DBC token:', poolInfo.dex);
+      // Check if it's a DBC token (Meteora, Moonshot, Pump.fun, Bags.fun, or other bonding curve platforms)
+      const dbcDexes = ['met-dbc', 'moonshot', 'pump.fun', 'pumpfun', 'bags.fun', 'bagsfun'];
+      const isDBC = dbcDexes.some(dex => poolInfo.dex?.toLowerCase().includes(dex.toLowerCase())) || 
+                    typeof poolInfo.bondingCurve === 'number';
+      
+      if (!isDBC) {
+        console.log('Not a DBC token:', poolInfo.dex);
         return null;
       }
+      
+      console.log(`Found DBC token on ${poolInfo.dex}:`, tokenAddress);
       
       // Calculate bonding curve percentage
       let bondingCurvePercentage = 0;
@@ -195,8 +201,13 @@ export class MeteoraDBCClient {
     
     const pair = data.pairs[0];
     
-    // Check if it's a Meteora pool
-    if (!pair.dexId || !pair.dexId.includes('meteora')) {
+    // Check if it's a DBC pool (Meteora, Moonshot, Pump.fun, etc)
+    const dbcPlatforms = ['meteora', 'moonshot', 'pump'];
+    const isDBC = dbcPlatforms.some(platform => 
+      pair.dexId?.toLowerCase().includes(platform)
+    );
+    
+    if (!isDBC) {
       return null;
     }
     
@@ -211,7 +222,7 @@ export class MeteoraDBCClient {
       bondingCurve: pair.liquidity?.usd ? Math.min(pair.liquidity.usd / 50000, 1) : 0,
       liquidity: pair.liquidity?.usd || 0,
       volume24h: pair.volume?.h24 || 0,
-      dex: 'met-dbc'
+      dex: pair.dexId || 'dbc'
     };
   }
   
