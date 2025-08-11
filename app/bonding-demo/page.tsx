@@ -5,11 +5,12 @@ import BondingCurveProgress, { BondingCurveProgressCompact } from '@/components/
 import { getMeteoraDBCClient } from '@/lib/meteora-dbc-client';
 
 export default function BondingDemoPage() {
-  const [tokenAddress, setTokenAddress] = useState('b5HpsgM4DkoQweD4aqjfKsoZ8amCsUK5KoiFFCbWodp');
+  const [tokenAddress, setTokenAddress] = useState('7pptQpJhe4Zm7YYqxF9Qw2bQboMTpXLskpiBsLyEHAYM');
   const [fetchedData, setFetchedData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
   const testTokens = [
+    { address: '7pptQpJhe4Zm7YYqxF9Qw2bQboMTpXLskpiBsLyEHAYM', name: 'V (26.85% - Building!)' },
     { address: 'AcNVuNdwNwxqkG17qSqNdUvigwiub3fvBV2ZjHNpzVyw', name: 'ROUTI (0% - Just Started!)' },
     { address: 'b5HpsgM4DkoQweD4aqjfKsoZ8amCsUK5KoiFFCbWodp', name: 'RTNG (Fresh DBC)' },
     { address: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263', name: 'BONK' },
