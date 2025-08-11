@@ -3,15 +3,15 @@ import { NextRequest, NextResponse } from 'next/server';
 // Jupiter API configuration
 const JUPITER_API_KEY = process.env.NEXT_PUBLIC_JUPITER_API_KEY || 'a8fa72b5-c442-47fb-b1e4-4ced7bea14a3';
 
-// Endpoint mapping for different API tiers
+// Endpoint mapping for Pro II plan (50 RPS)
 const ENDPOINT_CONFIG = {
   // Price API - Use v3, v2 is deprecated
-  'price/v2': { base: 'https://api.jup.ag', path: 'price/v3', needsAuth: false },
-  'price/v3': { base: 'https://api.jup.ag', path: 'price/v3', needsAuth: false },
+  'price/v2': { base: 'https://api.jup.ag', path: 'price/v3', needsAuth: true },
+  'price/v3': { base: 'https://api.jup.ag', path: 'price/v3', needsAuth: true },
   
-  // Quote and Swap - Use Lite endpoints for Flex plan
-  'v6/quote': { base: 'https://lite-api.jup.ag', path: 'swap/v1/quote', needsAuth: false },
-  'v6/swap': { base: 'https://lite-api.jup.ag', path: 'swap/v1/swap', needsAuth: false },
+  // Quote and Swap - Use Pro endpoints with auth
+  'v6/quote': { base: 'https://api.jup.ag', path: 'v6/quote', needsAuth: true },
+  'v6/swap': { base: 'https://api.jup.ag', path: 'v6/swap', needsAuth: true },
   
   // Token info endpoints
   'tokens': { base: 'https://api.jup.ag', path: 'tokens', needsAuth: false },
