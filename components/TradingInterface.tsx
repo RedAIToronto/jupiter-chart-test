@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import TradingViewChart from './TradingViewChart';
 import SwapInterfaceWithBalances from './SwapInterfaceWithBalances';
+import BondingCurveProgress from './BondingCurveProgress';
 import { useTokenData } from '@/contexts/TokenDataContext';
 import { getCachedChartData } from '@/lib/cache-manager';
 import { clearCache } from '@/lib/cache-manager';
@@ -92,11 +93,6 @@ export default function TradingInterface({ tokenAddress }: TradingInterfaceProps
               <h2 className="text-3xl font-bold text-white">{tokenInfo.baseAsset.symbol}</h2>
               <span className="text-gray-400 text-lg">{tokenInfo.baseAsset.name}</span>
               <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-sm">{tokenInfo.dex}</span>
-              {tokenInfo.bondingCurve !== undefined && tokenInfo.bondingCurve < 1 && (
-                <span className="px-2 py-1 bg-purple-500/20 text-purple-400 rounded text-sm">
-                  Bonding Curve: {(tokenInfo.bondingCurve * 100).toFixed(1)}%
-                </span>
-              )}
             </div>
             <div className="flex items-baseline gap-4">
               <span className="text-4xl font-bold text-white">
@@ -149,6 +145,18 @@ export default function TradingInterface({ tokenAddress }: TradingInterfaceProps
           </button>
         </div>
       </div>
+
+      {/* Bonding Curve Progress for DBC tokens */}
+      {tokenInfo.dex === 'met-dbc' && (
+        <div className="mt-4">
+          <BondingCurveProgress 
+            tokenAddress={tokenAddress}
+            showDetails={true}
+            autoRefresh={true}
+            refreshInterval={5000}
+          />
+        </div>
+      )}
 
       {/* Main content - Chart and Swap side by side */}
       <div className="flex flex-col lg:flex-row">
