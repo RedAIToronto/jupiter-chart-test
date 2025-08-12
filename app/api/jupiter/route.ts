@@ -5,9 +5,9 @@ const JUPITER_API_KEY = process.env.NEXT_PUBLIC_JUPITER_API_KEY || 'a8fa72b5-c44
 
 // Endpoint mapping for Pro II plan (50 RPS)
 const ENDPOINT_CONFIG = {
-  // Price API - v3 doesn't need auth, it's public
-  'price/v2': { base: 'https://api.jup.ag/', path: 'price/v3', needsAuth: false },
-  'price/v3': { base: 'https://api.jup.ag/', path: 'price/v3', needsAuth: false },
+  // Price API - Use public price endpoints
+  'price/v2': { base: 'https://price.jup.ag/v6/', path: 'price', needsAuth: false },
+  'price/v3': { base: 'https://price.jup.ag/v6/', path: 'price', needsAuth: false },
   
   // Quote and Swap - Use Pro endpoints with auth
   'v6/quote': { base: 'https://api.jup.ag', path: 'v6/quote', needsAuth: true },

@@ -21,7 +21,7 @@ async function updatePrices() {
     ];
     
     const response = await fetch(
-      `https://api.jup.ag/price/v3?ids=${tokens.join(',')}`
+      `https://price.jup.ag/v6/price?ids=${tokens.join(',')}`
     );
     
     if (response.ok) {
