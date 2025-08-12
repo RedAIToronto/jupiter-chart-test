@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import BondingCurveProgress from '@/components/BondingCurveProgress';
 import TradingInterface from '@/components/TradingInterface';
+import TokenMetrics from '@/components/TokenMetrics';
 
 export default function TestAnyTokenPage() {
   const [tokenAddress, setTokenAddress] = useState('');
@@ -78,6 +79,7 @@ export default function TestAnyTokenPage() {
             liquidity: pool.liquidity || 0,
             volume24h: pool.volume24h || 0,
             holders: pool.baseAsset?.holderCount || 0,
+            txns24h: pool.txns24h || 0,
             priceChange24h: pool.baseAsset?.stats24h?.priceChange || 0,
             createdAt: pool.createdAt,
             platform: pool.dex || 'Unknown DBC',
@@ -175,7 +177,7 @@ export default function TestAnyTokenPage() {
                   <h2 className="text-2xl font-bold text-green-400 mb-2">
                     ✅ DBC Token Found on {bondingData.platform}!
                   </h2>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-3">
                     <div>
                       <span className="text-gray-400">Symbol:</span>
                       <span className="ml-2 text-white font-semibold">{bondingData.symbol}</span>
@@ -199,6 +201,45 @@ export default function TestAnyTokenPage() {
                       </span>
                     </div>
                   </div>
+                  
+                  {/* Quick Stats Bar */}
+                  <div className="border-t border-green-700 pt-3 grid grid-cols-3 md:grid-cols-6 gap-3 text-xs">
+                    <div>
+                      <span className="text-gray-400">👥 Holders:</span>
+                      <span className="ml-1 text-white font-bold">{bondingData.holders || 0}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">📊 24h Vol:</span>
+                      <span className="ml-1 text-white font-bold">
+                        ${(bondingData.volume24h / 1000).toFixed(1)}K
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">⚡ 24h Txns:</span>
+                      <span className="ml-1 text-white font-bold">{bondingData.txns24h || 0}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">📈 24h:</span>
+                      <span className={`ml-1 font-bold ${
+                        bondingData.priceChange24h > 0 ? 'text-green-400' : 
+                        bondingData.priceChange24h < 0 ? 'text-red-400' : 'text-gray-400'
+                      }`}>
+                        {bondingData.priceChange24h > 0 ? '+' : ''}{bondingData.priceChange24h?.toFixed(2) || 0}%
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">💧 Liquidity:</span>
+                      <span className="ml-1 text-white font-bold">
+                        ${(bondingData.liquidity / 1000).toFixed(1)}K
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">💰 MCap:</span>
+                      <span className="ml-1 text-white font-bold">
+                        ${(bondingData.marketCap / 1000000).toFixed(2)}M
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Live Bonding Curve Display */}
@@ -211,6 +252,18 @@ export default function TestAnyTokenPage() {
                     showDetails={true}
                     autoRefresh={true}
                     refreshInterval={5000}
+                  />
+                </div>
+
+                {/* Activity & Holders Metrics */}
+                <div className="bg-gray-900 rounded-lg p-6">
+                  <h3 className="text-xl font-semibold text-white mb-4">
+                    📊 Activity & Holders
+                  </h3>
+                  <TokenMetrics 
+                    tokenAddress={testToken}
+                    autoRefresh={true}
+                    refreshInterval={10000}
                   />
                 </div>
 

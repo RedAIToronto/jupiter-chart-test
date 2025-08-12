@@ -17,6 +17,12 @@ interface DBCTokenInfo {
   isComplete: boolean;
   migrationThreshold: number;
   dex: string;
+  holders: number;
+  volume24h: number;
+  txns24h: number;
+  priceChange24h: number;
+  liquidity: number;
+  createdAt?: string;
 }
 
 interface JupiterPoolInfo {
@@ -118,6 +124,14 @@ export class MeteoraDBCClient {
         currentPrice = this.calculatePriceFromBondingCurve(bondingCurvePercentage);
       }
       
+      // Extract additional metrics
+      const holders = poolInfo.baseAsset?.holderCount || 0;
+      const volume24h = poolInfo.volume24h || 0;
+      const txns24h = poolInfo.txns24h || 0;
+      const priceChange24h = poolInfo.baseAsset?.stats24h?.priceChange || 0;
+      const liquidity = poolInfo.liquidity || 0;
+      const createdAt = poolInfo.createdAt;
+      
       const tokenInfo: DBCTokenInfo = {
         tokenAddress,
         configAddress: tokenAddress, // For DBC, config and token are often the same
@@ -128,7 +142,13 @@ export class MeteoraDBCClient {
         marketCap: currentPrice * (poolInfo.baseAsset.totalSupply || 1000000000),
         isComplete: bondingCurvePercentage >= 100,
         migrationThreshold,
-        dex: poolInfo.dex
+        dex: poolInfo.dex,
+        holders,
+        volume24h,
+        txns24h,
+        priceChange24h,
+        liquidity,
+        createdAt
       };
       
       // Cache the result
