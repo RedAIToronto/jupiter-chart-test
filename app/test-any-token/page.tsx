@@ -4,6 +4,7 @@ import { useState } from 'react';
 import BondingCurveProgress from '@/components/BondingCurveProgress';
 import TradingInterface from '@/components/TradingInterface';
 import TokenMetrics from '@/components/TokenMetrics';
+import HoldersList from '@/components/HoldersList';
 
 export default function TestAnyTokenPage() {
   const [tokenAddress, setTokenAddress] = useState('');
@@ -264,6 +265,18 @@ export default function TestAnyTokenPage() {
                     tokenAddress={testToken}
                     autoRefresh={true}
                     refreshInterval={10000}
+                  />
+                </div>
+
+                {/* Holders List with Addresses */}
+                <div className="bg-gray-900 rounded-lg p-6">
+                  <h3 className="text-xl font-semibold text-white mb-4">
+                    🏆 Top Holders & Addresses
+                  </h3>
+                  <HoldersList 
+                    tokenAddress={testToken}
+                    totalSupply={bondingData.totalSupply || 1000000000}
+                    showCount={20}
                   />
                 </div>
 
