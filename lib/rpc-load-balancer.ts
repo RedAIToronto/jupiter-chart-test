@@ -17,11 +17,19 @@ export class RPCLoadBalancer {
   private healthCheckInterval: NodeJS.Timeout | null = null;
 
   constructor() {
-    // Use QuickNode RPC endpoint
+    // Use Helius RPC as primary endpoint
     this.endpoints = [
       {
-        url: 'https://billowing-alpha-borough.solana-mainnet.quiknode.pro/a03394eddb75c7558f4c17e7875eb6b59d0df60c/',
+        url: process.env.NEXT_PUBLIC_HELIUS_RPC_URL || 'https://mainnet.helius-rpc.com/?api-key=a5804a30-0390-4233-a0b8-71ed67be00a6',
         weight: 10,
+        healthy: true,
+        responseTime: 0,
+        errors: 0,
+        lastCheck: Date.now()
+      },
+      {
+        url: 'https://billowing-alpha-borough.solana-mainnet.quiknode.pro/a03394eddb75c7558f4c17e7875eb6b59d0df60c/',
+        weight: 5,
         healthy: true,
         responseTime: 0,
         errors: 0,

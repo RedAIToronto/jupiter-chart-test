@@ -47,7 +47,9 @@ export default function HoldersList({
       if (!response || !response.ok) {
         // Fallback: Use RPC to get token accounts
         const connection = new Connection(
-          process.env.NEXT_PUBLIC_RPC_URL || 'https://api.mainnet-beta.solana.com'
+          process.env.NEXT_PUBLIC_HELIUS_RPC_URL || 
+          process.env.NEXT_PUBLIC_RPC_URL || 
+          'https://mainnet.helius-rpc.com/?api-key=a5804a30-0390-4233-a0b8-71ed67be00a6'
         );
         
         const tokenAccounts = await connection.getParsedProgramAccounts(
